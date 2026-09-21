@@ -24,8 +24,12 @@ CREATE OR REPLACE TRANSIENT TABLE DEMO_DB.PUBLIC.TAXI_DRIVE_SMALL_FILES
 );
 
 -- STEP 2: Upload your Desktop CSV into the table stage (Windows path)
-PUT file:///C:/Users/Gawaskar/OneDrive/Desktop/train_100_records.csv
+
+
+PUT file:///C:/Users/Gawaskar/OneDrive/Desktop/train.csv
     @DEMO_DB.PUBLIC.%TAXI_DRIVE_SMALL_FILES;
+
+list@%TAXI_DRIVE_SMALL_FILES;
 
 -- STEP 3: Load it. SKIP_HEADER=1 — your CSV has a header row.
 COPY INTO DEMO_DB.PUBLIC.TAXI_DRIVE_SMALL_FILES
@@ -45,5 +49,7 @@ FILE_FORMAT = (
 )
 ON_ERROR = 'CONTINUE';
 
+
+truncate table DEMO_DB.PUBLIC.TAXI_DRIVE_SMALL_FILES;
 -- Optional: verify the load
 SELECT COUNT(*) AS LOADED_ROWS FROM DEMO_DB.PUBLIC.TAXI_DRIVE_SMALL_FILES;
