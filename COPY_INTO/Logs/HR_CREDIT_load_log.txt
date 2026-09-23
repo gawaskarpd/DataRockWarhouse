@@ -1,0 +1,86 @@
+===============================================================================
+ HR_CREDIT LOAD LOG - MY_STAGE_INT2 -> HR_EMP_DATA
+ Project  : Snowflake-project-001
+ Table    : DEMO_DB.PUBLIC.HR_EMP_DATA (37 cols, all VARCHAR)
+ Stage    : DEMO_DB.PUBLIC.MY_STAGE_INT2 (INTERNAL)
+ Source   : COPY_INTO/ResourceFilesUpload/HR_CREDIT.csv (2000 lines, local)
+ Log path : COPY_INTO/Logs/HR_CREDIT_load_log.txt
+ Date     : 2026-09-24
+ Status   : RELOADED WITH FIX - 999 ROWS (see diagnosis below)
+===============================================================================
+
+1. ISSUE REPORTED
+-------------------------------------------------------------------------------
+- COPY with ESCAPE='\\' loaded only 983 rows, re-runs showed same count.
+- Trailing/mid-field backslash e.g. UIW?aBVTacK\, K*H\*6f suspected.
+
+2. DIAGNOSIS (via snow CLI -x --account GKMZJDJ-RB91367 --user rahulsingh)
+-------------------------------------------------------------------------------
+a) CNT_BEFORE:
+   SELECT COUNT(*) FROM demo_db.PUBLIC.HR_EMP_DATA; -> 983
+
+b) LIST @demo_db.public.my_stage_int2:
+   my_stage_int2/HR_CREDIT.csv.gz | 136480 | 876a203bb5cd540a44778795da3dab57
+
+c) COPY_HISTORY (48h):
+   FILE_NAME=HR_CREDIT.csv.gz | ROW_COUNT=983 | ROW_PARSED=1991
+   ERROR_COUNT=1008 | STATUS=Partially loaded
+   FIRST_ERROR: Field delimiter ',' found while expecting record delimiter '\n'
+   LINE 269, COL PASSWORD:37
+
+   Cause: ESCAPE='\\' treats `\"` / `\` + quote as escaped quote,
+   merging rows. `'\\'` syntax fixed the unterminated `'\'` error,
+   but keeps the logic error.
+
+d) VALIDATION test (COPY_INTO/Scripts/test_validation_none.sql):
+   FILE_FORMAT=(TYPE='CSV' FIELD_OPTIONALLY_ENCLOSED_BY='"'
+     SKIP_HEADER=1 ERROR_ON_COLUMN_COUNT_MISMATCH=TRUE
+     ESCAPE=NONE ESCAPE_UNENCLOSED_FIELD=NONE)
+   VALIDATION_MODE='RETURN_ERRORS' -> No data (0 backslash errors)
+
+e) Local file check (python):
+   total=2000, header fields=37 (row1 is DATA, no header)
+   rows 1-1000: HR data, 36 commas (37 cols) - good
+   rows 1001-2000: bank data e.g. 20-Aug-2020,Cheque,"3,391.02",00.00,"83,839.30"
+     6 commas (5 cols) - different file appended
+   Last line: 09-Oct-2020,Bill,58.09,00.00,"231,642.13"
+
+3. FIX APPLIED (COPY_INTO/Scripts/hr_reload_fixed.sql)
+-------------------------------------------------------------------------------
+TRUNCATE TABLE demo_db.PUBLIC.HR_EMP_DATA;
+
+COPY INTO demo_db.PUBLIC.HR_EMP_DATA
+FROM @demo_db.public.my_stage_int2
+FILE_FORMAT = (
+  TYPE = 'CSV'
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  SKIP_HEADER = 1
+  ERROR_ON_COLUMN_COUNT_MISMATCH = TRUE
+  ESCAPE = NONE
+  ESCAPE_UNENCLOSED_FIELD = NONE
+)
+ON_ERROR = 'CONTINUE'
+FORCE = TRUE;
+-- FORCE=TRUE required: file was already marked loaded, else re-COPY loads 0.
+
+Result:
+  file=my_stage_int2/HR_CREDIT.csv.gz | status=PARTIALLY_LOADED
+  rows_parsed=1999 | rows_loaded=999 | errors_seen=1000
+  first_error: End of record reached while expected to parse column GENDER:6
+  line 1001 char 48 (first bank row)
+SELECT COUNT(*) -> 999
+
+4. WHY NOT 2000 / 983 -> 999 EXPLAINED
+-------------------------------------------------------------------------------
+- 983 -> 999 (+16): backslash rows fixed by ESCAPE=NONE.
+- 999 = 1000 HR rows minus 1 skipped by SKIP_HEADER=1 (file has NO header).
+- 1000 bank rows (1001-2000) correctly rejected by
+  ERROR_ON_COLUMN_COUNT_MISMATCH=TRUE (5 cols vs 37).
+- So 999 is 100% correct for current settings.
+
+5. NEXT STEP (to get 1000)
+-------------------------------------------------------------------------------
+- Change SKIP_HEADER=1 to SKIP_HEADER=0 (no header in file).
+- Split file: rows 1-1000 -> HR_EMP_DATA, rows 1001-2000 -> separate
+  bank table (5 cols).
+===============================================================================
