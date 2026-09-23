@@ -1,0 +1,5 @@
+# Large local data files - do not commit
+*.csv
+*.gz
+*.zip
+Tobacco_Legislation__Smokefree_Indoor_Air.csv/

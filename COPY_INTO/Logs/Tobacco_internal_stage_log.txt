@@ -1,0 +1,47 @@
+===============================================================================
+ TOBACCO INTERNAL STAGE LOG - MY_STAGE_INT1
+ Project  : Snowflake-project-001
+ Stage    : DEMO_DB.PUBLIC.MY_STAGE_INT1 (INTERNAL named stage)
+ Log path : COPY_INTO/Logs/Tobacco_internal_stage_log.txt
+ Created  : 2026-09-23
+ Status   : PUT COMPLETED - VERIFIED
+===============================================================================
+
+1. COMMAND (fixed)
+-------------------------------------------------------------------------------
+PUT 'file://C:/Users/Gawaskar/OneDrive/Desktop/Snowflake-project-001/Tobacco_Legislation__Smokefree_Indoor_Air.csv/Tobacco_Legislation__Smokefree_Indoor_Air.csv'
+@DEMO_DB.PUBLIC.MY_STAGE_INT1;
+
+Note: previous attempt used @DEMO_DB.PUBLIC.%my_stage_int1 (table-stage
+syntax). Fixed to named-stage syntax @DEMO_DB.PUBLIC.MY_STAGE_INT1.
+
+2. PUT RESULT (2026-09-22, via Snowflake CLI `snow sql -c default`)
+-------------------------------------------------------------------------------
+ source             : Tobacco_Legislation__Smokefree_Indoor_Air.csv
+ target             : Tobacco_Legislation__Smokefree_Indoor_Air.csv.gz
+ source_size        : 148532300 bytes (~148.5 MB)
+ target_size        : 16442336 bytes (~16.4 MB, GZIP auto-compress)
+ source_compression : NONE
+ target_compression : GZIP
+ status             : UPLOADED
+
+Local source folder contents:
+ Tobacco_Legislation__Smokefree_Indoor_Air.csv/ (directory)
+   Tobacco_Legislation__Smokefree_Indoor_Air.csv (148532300 bytes)
+   Tobacco_Legislation__Smokefree_Indoor_Air.csv.gz (16731929 bytes)
+   archive_name.gz (29 bytes)
+
+3. VERIFICATION - LIST @DEMO_DB.PUBLIC.MY_STAGE_INT1
+-------------------------------------------------------------------------------
+ name                                                          | size     | md5                              | last_modified
+ my_stage_int1/Tobacco_Legislation__Smokefree_Indoor_Air.csv.gz | 16442336 | 5faea4d8901a86729a2605353d1ee018 | Tue, 22 Sep 2026 22:20:17 GMT
+
+LIST @DEMO_DB.PUBLIC.MY_INTERNAL_STAGE -> No data (empty).
+
+4. NEXT STEP (if needed)
+-------------------------------------------------------------------------------
+COPY INTO <target_table>
+FROM @DEMO_DB.PUBLIC.MY_STAGE_INT1
+FILE_FORMAT = (TYPE = 'CSV' SKIP_HEADER = 1 FIELD_OPTIONALLY_ENCLOSED_BY = '"')
+ON_ERROR = 'CONTINUE';
+===============================================================================
