@@ -14,7 +14,7 @@
 - COPY with ESCAPE='\\' loaded only 983 rows, re-runs showed same count.
 - Trailing/mid-field backslash e.g. UIW?aBVTacK\, K*H\*6f suspected.
 
-2. DIAGNOSIS (via snow CLI -x --account GKMZJDJ-RB91367 --user rahulsingh)
+2. DIAGNOSIS (via snow CLI -x --account GKMZJDJ-RB91367 --user <redacted>)
 -------------------------------------------------------------------------------
 a) CNT_BEFORE:
    SELECT COUNT(*) FROM demo_db.PUBLIC.HR_EMP_DATA; -> 983

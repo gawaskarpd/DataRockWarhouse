@@ -61,7 +61,8 @@ list@demo_db.public.my_stage_int2;
 
 describe stage demo_db.public.my_stage_int2;
 
-snow sql -a GKMZJDJ-RB91367 -u rahulsingh -p Rahul@12345678 -d demo_db -s public;
+-- NOTE: snow CLI login moved to ~/.snowflake/connections.toml (see run_put.ps1).
+-- Cleaned: username/password removed from repo on 2026-09-24.
 
 
 

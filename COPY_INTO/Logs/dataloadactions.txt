@@ -43,7 +43,7 @@ Error received: "Query result expired"
   (v1.3.1). Note: v1.3.1 does not read ~/.snowflake/connections.toml; the
   connection was used via explicit parameters + the saved password
   (loaded into $env:SNOWSQL_PWD at runtime; never written to disk or logs).
-- Connection used              : user RAHULSINGH @ DEMO_DB / PUBLIC /
+- Connection used              : user <redacted> @ DEMO_DB / PUBLIC /
   COMPUTE_WH / role ACCOUNTADMIN. Current_account: AO72901.
   (Stored config ~/.snowflake/connections.toml, [default] section.)
 
