@@ -74,7 +74,7 @@ parse_xml('<bpd:AuctionData xmlns:bpd="http://www.treasurydirect.gov/" xmlns:xsi
 <MaximumNonCompAward>5000000.0</MaximumNonCompAward>
 <AdjustedAccruedInterest/>
 </AuctionAnnouncement>
-</bpd:AuctionData>')
+</bpd:AuctionData>');
 
 
 SELECT v FROM xml_demo;
